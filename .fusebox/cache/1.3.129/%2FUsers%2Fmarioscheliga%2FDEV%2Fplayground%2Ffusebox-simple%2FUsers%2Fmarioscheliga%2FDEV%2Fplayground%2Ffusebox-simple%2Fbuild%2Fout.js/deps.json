@@ -1,0 +1,637 @@
+{
+  "tree": {
+    "fusebox-hot-reload@0.0.0": {
+      "deps": {
+        "fusebox-websocket@0.0.0": {
+          "deps": {
+            "events@0.0.0": {
+              "deps": {},
+              "name": "events",
+              "version": "0.0.0"
+            }
+          },
+          "name": "fusebox-websocket",
+          "version": "0.0.0"
+        }
+      },
+      "name": "fusebox-hot-reload",
+      "version": "0.0.0"
+    },
+    "react@15.4.2": {
+      "deps": {
+        "object-assign@4.1.1": {
+          "deps": {},
+          "name": "object-assign",
+          "version": "4.1.1"
+        },
+        "fbjs@0.8.12": {
+          "deps": {
+            "process@0.0.0": {
+              "deps": {
+                "object-assign-polyfill@0.0.0": {
+                  "deps": {},
+                  "name": "object-assign-polyfill",
+                  "version": "0.0.0"
+                }
+              },
+              "name": "process",
+              "version": "0.0.0"
+            }
+          },
+          "name": "fbjs",
+          "version": "0.8.12"
+        }
+      },
+      "name": "react",
+      "version": "15.4.2"
+    },
+    "react-dom@15.4.2": {
+      "deps": {},
+      "name": "react-dom",
+      "version": "15.4.2"
+    },
+    "graphql-tag@2.0.0": {
+      "deps": {
+        "graphql@0.9.2": {
+          "deps": {
+            "iterall@1.0.3": {
+              "deps": {},
+              "name": "iterall",
+              "version": "1.0.3"
+            }
+          },
+          "name": "graphql",
+          "version": "0.9.2"
+        }
+      },
+      "name": "graphql-tag",
+      "version": "2.0.0"
+    },
+    "react-apollo@1.0.0": {
+      "deps": {
+        "invariant@2.2.2": {
+          "deps": {},
+          "name": "invariant",
+          "version": "2.2.2"
+        },
+        "lodash.pick@4.4.0": {
+          "deps": {},
+          "name": "lodash.pick",
+          "version": "4.4.0"
+        },
+        "hoist-non-react-statics@1.2.0": {
+          "deps": {},
+          "name": "hoist-non-react-statics",
+          "version": "1.2.0"
+        },
+        "redux@3.6.0": {
+          "deps": {
+            "lodash@4.17.4": {
+              "deps": {},
+              "name": "lodash",
+              "version": "4.17.4"
+            },
+            "symbol-observable@1.0.4": {
+              "deps": {},
+              "name": "symbol-observable",
+              "version": "1.0.4"
+            }
+          },
+          "name": "redux",
+          "version": "3.6.0"
+        },
+        "apollo-client@1.0.1": {
+          "deps": {
+            "whatwg-fetch@2.0.3": {
+              "deps": {},
+              "name": "whatwg-fetch",
+              "version": "2.0.3"
+            },
+            "graphql-anywhere@3.0.1": {
+              "deps": {},
+              "name": "graphql-anywhere",
+              "version": "3.0.1"
+            }
+          },
+          "name": "apollo-client",
+          "version": "1.0.1"
+        },
+        "graphql-tag@1.3.2": {
+          "deps": {},
+          "name": "graphql-tag",
+          "version": "1.3.2"
+        }
+      },
+      "name": "react-apollo",
+      "version": "1.0.0"
+    },
+    "graphql-tools@0.0.0": {
+      "deps": {},
+      "name": "graphql-tools",
+      "version": "0.0.0"
+    },
+    "graphql-tools@0.11.0": {
+      "deps": {
+        "deprecated-decorator@0.1.6": {
+          "deps": {},
+          "name": "deprecated-decorator",
+          "version": "0.1.6"
+        },
+        "uuid@3.0.1": {
+          "deps": {
+            "crypto@0.0.0": {
+              "deps": {},
+              "name": "crypto",
+              "version": "0.0.0"
+            }
+          },
+          "name": "uuid",
+          "version": "3.0.1"
+        }
+      },
+      "name": "graphql-tools",
+      "version": "0.11.0"
+    }
+  },
+  "flat": {
+    "fusebox-hot-reload@0.0.0": {
+      "name": "fusebox-hot-reload",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "fusebox-websocket@0.0.0": {
+      "name": "fusebox-websocket",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "events@0.0.0": {
+      "name": "events",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "react@15.4.2": {
+      "name": "react",
+      "version": "15.4.2",
+      "files": [
+        "react.js",
+        "lib/React.js",
+        "lib/ReactChildren.js",
+        "lib/PooledClass.js",
+        "lib/reactProdInvariant.js",
+        "lib/ReactElement.js",
+        "lib/ReactCurrentOwner.js",
+        "lib/canDefineProperty.js",
+        "lib/ReactElementSymbol.js",
+        "lib/traverseAllChildren.js",
+        "lib/getIteratorFn.js",
+        "lib/KeyEscapeUtils.js",
+        "lib/ReactComponent.js",
+        "lib/ReactNoopUpdateQueue.js",
+        "lib/ReactPureComponent.js",
+        "lib/ReactClass.js",
+        "lib/ReactPropTypeLocationNames.js",
+        "lib/ReactDOMFactories.js",
+        "lib/ReactElementValidator.js",
+        "lib/ReactComponentTreeHook.js",
+        "lib/checkReactTypeSpec.js",
+        "lib/ReactPropTypesSecret.js",
+        "lib/ReactPropTypes.js",
+        "lib/ReactVersion.js",
+        "lib/onlyChild.js"
+      ]
+    },
+    "object-assign@4.1.1": {
+      "name": "object-assign",
+      "version": "4.1.1",
+      "files": [
+        "index.js"
+      ]
+    },
+    "fbjs@0.8.12": {
+      "name": "fbjs",
+      "version": "0.8.12",
+      "files": [
+        "lib/invariant.js",
+        "lib/warning.js",
+        "lib/emptyFunction.js",
+        "lib/emptyObject.js",
+        "lib/ExecutionEnvironment.js",
+        "lib/performanceNow.js",
+        "lib/performance.js",
+        "lib/createNodesFromMarkup.js",
+        "lib/createArrayFromMixed.js",
+        "lib/getMarkupWrap.js",
+        "lib/focusNode.js",
+        "lib/camelizeStyleName.js",
+        "lib/camelize.js",
+        "lib/hyphenateStyleName.js",
+        "lib/hyphenate.js",
+        "lib/memoizeStringOnly.js",
+        "lib/shallowEqual.js",
+        "lib/EventListener.js",
+        "lib/getUnboundedScrollPosition.js",
+        "lib/containsNode.js",
+        "lib/isTextNode.js",
+        "lib/isNode.js",
+        "lib/getActiveElement.js"
+      ]
+    },
+    "process@0.0.0": {
+      "name": "process",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "object-assign-polyfill@0.0.0": {
+      "name": "object-assign-polyfill",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "react-dom@15.4.2": {
+      "name": "react-dom",
+      "version": "15.4.2",
+      "files": [
+        "index.js",
+        "lib/ReactDOM.js",
+        "lib/ReactDOMComponentTree.js",
+        "lib/reactProdInvariant.js",
+        "lib/DOMProperty.js",
+        "lib/ReactDOMComponentFlags.js",
+        "lib/ReactDefaultInjection.js",
+        "lib/ARIADOMPropertyConfig.js",
+        "lib/BeforeInputEventPlugin.js",
+        "lib/EventPropagators.js",
+        "lib/EventPluginHub.js",
+        "lib/EventPluginRegistry.js",
+        "lib/EventPluginUtils.js",
+        "lib/ReactErrorUtils.js",
+        "lib/accumulateInto.js",
+        "lib/forEachAccumulated.js",
+        "lib/FallbackCompositionState.js",
+        "lib/PooledClass.js",
+        "lib/getTextContentAccessor.js",
+        "lib/SyntheticCompositionEvent.js",
+        "lib/SyntheticEvent.js",
+        "lib/SyntheticInputEvent.js",
+        "lib/ChangeEventPlugin.js",
+        "lib/ReactUpdates.js",
+        "lib/CallbackQueue.js",
+        "lib/ReactFeatureFlags.js",
+        "lib/ReactReconciler.js",
+        "lib/ReactRef.js",
+        "lib/ReactOwner.js",
+        "lib/ReactInstrumentation.js",
+        "lib/ReactDebugTool.js",
+        "lib/ReactInvalidSetStateWarningHook.js",
+        "lib/ReactHostOperationHistoryHook.js",
+        "lib/Transaction.js",
+        "lib/getEventTarget.js",
+        "lib/isEventSupported.js",
+        "lib/isTextInputElement.js",
+        "lib/DefaultEventPluginOrder.js",
+        "lib/EnterLeaveEventPlugin.js",
+        "lib/SyntheticMouseEvent.js",
+        "lib/SyntheticUIEvent.js",
+        "lib/ViewportMetrics.js",
+        "lib/getEventModifierState.js",
+        "lib/HTMLDOMPropertyConfig.js",
+        "lib/ReactComponentBrowserEnvironment.js",
+        "lib/DOMChildrenOperations.js",
+        "lib/DOMLazyTree.js",
+        "lib/DOMNamespaces.js",
+        "lib/setInnerHTML.js",
+        "lib/createMicrosoftUnsafeLocalFunction.js",
+        "lib/setTextContent.js",
+        "lib/escapeTextContentForBrowser.js",
+        "lib/Danger.js",
+        "lib/ReactDOMIDOperations.js",
+        "lib/ReactDOMComponent.js",
+        "lib/AutoFocusUtils.js",
+        "lib/CSSPropertyOperations.js",
+        "lib/CSSProperty.js",
+        "lib/dangerousStyleValue.js",
+        "lib/DOMPropertyOperations.js",
+        "lib/quoteAttributeValueForBrowser.js",
+        "lib/ReactBrowserEventEmitter.js",
+        "lib/ReactEventEmitterMixin.js",
+        "lib/getVendorPrefixedEventName.js",
+        "lib/ReactDOMInput.js",
+        "lib/LinkedValueUtils.js",
+        "lib/ReactPropTypesSecret.js",
+        "lib/ReactDOMOption.js",
+        "lib/ReactDOMSelect.js",
+        "lib/ReactDOMTextarea.js",
+        "lib/ReactMultiChild.js",
+        "lib/ReactComponentEnvironment.js",
+        "lib/ReactInstanceMap.js",
+        "lib/ReactChildReconciler.js",
+        "lib/instantiateReactComponent.js",
+        "lib/ReactCompositeComponent.js",
+        "lib/ReactNodeTypes.js",
+        "lib/checkReactTypeSpec.js",
+        "lib/ReactPropTypeLocationNames.js",
+        "lib/shouldUpdateReactComponent.js",
+        "lib/ReactEmptyComponent.js",
+        "lib/ReactHostComponent.js",
+        "lib/getNextDebugID.js",
+        "lib/KeyEscapeUtils.js",
+        "lib/traverseAllChildren.js",
+        "lib/ReactElementSymbol.js",
+        "lib/getIteratorFn.js",
+        "lib/flattenChildren.js",
+        "lib/ReactServerRenderingTransaction.js",
+        "lib/ReactServerUpdateQueue.js",
+        "lib/ReactUpdateQueue.js",
+        "lib/validateDOMNesting.js",
+        "lib/ReactDOMEmptyComponent.js",
+        "lib/ReactDOMTreeTraversal.js",
+        "lib/ReactDOMTextComponent.js",
+        "lib/ReactDefaultBatchingStrategy.js",
+        "lib/ReactEventListener.js",
+        "lib/ReactInjection.js",
+        "lib/ReactReconcileTransaction.js",
+        "lib/ReactInputSelection.js",
+        "lib/ReactDOMSelection.js",
+        "lib/getNodeForCharacterOffset.js",
+        "lib/SVGDOMPropertyConfig.js",
+        "lib/SelectEventPlugin.js",
+        "lib/SimpleEventPlugin.js",
+        "lib/SyntheticAnimationEvent.js",
+        "lib/SyntheticClipboardEvent.js",
+        "lib/SyntheticFocusEvent.js",
+        "lib/SyntheticKeyboardEvent.js",
+        "lib/getEventCharCode.js",
+        "lib/getEventKey.js",
+        "lib/SyntheticDragEvent.js",
+        "lib/SyntheticTouchEvent.js",
+        "lib/SyntheticTransitionEvent.js",
+        "lib/SyntheticWheelEvent.js",
+        "lib/ReactMount.js",
+        "lib/ReactDOMContainerInfo.js",
+        "lib/ReactDOMFeatureFlags.js",
+        "lib/ReactMarkupChecksum.js",
+        "lib/adler32.js",
+        "lib/ReactVersion.js",
+        "lib/findDOMNode.js",
+        "lib/getHostComponentFromComposite.js",
+        "lib/renderSubtreeIntoContainer.js",
+        "lib/ReactDOMUnknownPropertyHook.js",
+        "lib/ReactDOMNullInputValuePropHook.js",
+        "lib/ReactDOMInvalidARIAHook.js"
+      ]
+    },
+    "graphql-tag@2.0.0": {
+      "name": "graphql-tag",
+      "version": "2.0.0",
+      "files": [
+        "lib/graphql-tag.umd.js"
+      ]
+    },
+    "graphql@0.9.2": {
+      "name": "graphql",
+      "version": "0.9.2",
+      "files": [
+        "language/parser.js",
+        "language/source.js",
+        "error/index.js",
+        "error/GraphQLError.js",
+        "language/location.js",
+        "error/syntaxError.js",
+        "error/locatedError.js",
+        "error/formatError.js",
+        "jsutils/invariant.js",
+        "language/lexer.js",
+        "language/kinds.js",
+        "language/printer.js",
+        "language/visitor.js",
+        "index.js",
+        "graphql.js",
+        "validation/validate.js",
+        "type/schema.js",
+        "type/definition.js",
+        "jsutils/isNullish.js",
+        "utilities/assertValidName.js",
+        "type/directives.js",
+        "type/scalars.js",
+        "type/introspection.js",
+        "jsutils/isInvalid.js",
+        "utilities/astFromValue.js",
+        "jsutils/find.js",
+        "utilities/typeComparators.js",
+        "utilities/TypeInfo.js",
+        "utilities/typeFromAST.js",
+        "validation/specifiedRules.js",
+        "validation/rules/UniqueOperationNames.js",
+        "validation/rules/LoneAnonymousOperation.js",
+        "validation/rules/KnownTypeNames.js",
+        "jsutils/suggestionList.js",
+        "jsutils/quotedOrList.js",
+        "validation/rules/FragmentsOnCompositeTypes.js",
+        "validation/rules/VariablesAreInputTypes.js",
+        "validation/rules/ScalarLeafs.js",
+        "validation/rules/FieldsOnCorrectType.js",
+        "validation/rules/UniqueFragmentNames.js",
+        "validation/rules/KnownFragmentNames.js",
+        "validation/rules/NoUnusedFragments.js",
+        "validation/rules/PossibleFragmentSpreads.js",
+        "validation/rules/NoFragmentCycles.js",
+        "validation/rules/UniqueVariableNames.js",
+        "validation/rules/NoUndefinedVariables.js",
+        "validation/rules/NoUnusedVariables.js",
+        "validation/rules/KnownDirectives.js",
+        "validation/rules/UniqueDirectivesPerLocation.js",
+        "validation/rules/KnownArgumentNames.js",
+        "validation/rules/UniqueArgumentNames.js",
+        "validation/rules/ArgumentsOfCorrectType.js",
+        "utilities/isValidLiteralValue.js",
+        "jsutils/keyMap.js",
+        "validation/rules/ProvidedNonNullArguments.js",
+        "validation/rules/DefaultValuesOfCorrectType.js",
+        "validation/rules/VariablesInAllowedPosition.js",
+        "validation/rules/OverlappingFieldsCanBeMerged.js",
+        "validation/rules/UniqueInputFieldNames.js",
+        "execution/execute.js",
+        "execution/values.js",
+        "utilities/valueFromAST.js",
+        "utilities/isValidJSValue.js",
+        "type/index.js",
+        "language/index.js",
+        "execution/index.js",
+        "validation/index.js",
+        "utilities/index.js",
+        "utilities/introspectionQuery.js",
+        "utilities/getOperationAST.js",
+        "utilities/buildClientSchema.js",
+        "jsutils/keyValMap.js",
+        "utilities/buildASTSchema.js",
+        "utilities/extendSchema.js",
+        "utilities/schemaPrinter.js",
+        "utilities/concatAST.js",
+        "utilities/separateOperations.js",
+        "utilities/findBreakingChanges.js",
+        "utilities/findDeprecatedUsages.js"
+      ]
+    },
+    "react-apollo@1.0.0": {
+      "name": "react-apollo",
+      "version": "1.0.0",
+      "files": [
+        "lib/browser.js",
+        "lib/ApolloProvider.js",
+        "lib/graphql.js",
+        "lib/shallowEqual.js",
+        "lib/parser.js"
+      ]
+    },
+    "invariant@2.2.2": {
+      "name": "invariant",
+      "version": "2.2.2",
+      "files": [
+        "browser.js"
+      ]
+    },
+    "lodash.pick@4.4.0": {
+      "name": "lodash.pick",
+      "version": "4.4.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "hoist-non-react-statics@1.2.0": {
+      "name": "hoist-non-react-statics",
+      "version": "1.2.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "redux@3.6.0": {
+      "name": "redux",
+      "version": "3.6.0",
+      "files": [
+        "lib/index.js",
+        "lib/createStore.js",
+        "lib/combineReducers.js",
+        "lib/utils/warning.js",
+        "lib/bindActionCreators.js",
+        "lib/applyMiddleware.js",
+        "lib/compose.js"
+      ]
+    },
+    "lodash@4.17.4": {
+      "name": "lodash",
+      "version": "4.17.4",
+      "files": [
+        "isPlainObject.js",
+        "_baseGetTag.js",
+        "_Symbol.js",
+        "_root.js",
+        "_freeGlobal.js",
+        "_getRawTag.js",
+        "_objectToString.js",
+        "_getPrototype.js",
+        "_overArg.js",
+        "isObjectLike.js",
+        "lodash.js"
+      ]
+    },
+    "symbol-observable@1.0.4": {
+      "name": "symbol-observable",
+      "version": "1.0.4",
+      "files": [
+        "index.js",
+        "lib/index.js",
+        "lib/ponyfill.js"
+      ]
+    },
+    "apollo-client@1.0.1": {
+      "name": "apollo-client",
+      "version": "1.0.1",
+      "files": [
+        "apollo.umd.js"
+      ]
+    },
+    "whatwg-fetch@2.0.3": {
+      "name": "whatwg-fetch",
+      "version": "2.0.3",
+      "files": [
+        "fetch.js"
+      ]
+    },
+    "graphql-anywhere@3.0.1": {
+      "name": "graphql-anywhere",
+      "version": "3.0.1",
+      "files": [
+        "lib/src/index.js",
+        "lib/src/utilities.js",
+        "lib/src/graphql.js",
+        "lib/src/getFromAST.js",
+        "lib/src/directives.js",
+        "lib/src/storeUtils.js"
+      ]
+    },
+    "graphql-tag@1.3.2": {
+      "name": "graphql-tag@1.3.2",
+      "version": "1.3.2",
+      "files": [
+        "index.js",
+        "bundledParser.js"
+      ]
+    },
+    "graphql-tools@0.0.0": {
+      "name": "graphql-tools",
+      "version": "0.0.0",
+      "files": []
+    },
+    "graphql-tools@0.11.0": {
+      "name": "graphql-tools",
+      "version": "0.11.0",
+      "files": [
+        "dist/index.js",
+        "dist/schemaGenerator.js",
+        "dist/mock.js",
+        "dist/autopublish.js"
+      ]
+    },
+    "deprecated-decorator@0.1.6": {
+      "name": "deprecated-decorator",
+      "version": "0.1.6",
+      "files": [
+        "bld/index.js"
+      ]
+    },
+    "uuid@3.0.1": {
+      "name": "uuid",
+      "version": "3.0.1",
+      "files": [
+        "index.js",
+        "v1.js",
+        "lib/rng.js",
+        "lib/bytesToUuid.js",
+        "v4.js"
+      ]
+    },
+    "crypto@0.0.0": {
+      "name": "crypto",
+      "version": "0.0.0",
+      "files": [
+        "index.js"
+      ]
+    },
+    "iterall@1.0.3": {
+      "name": "iterall",
+      "version": "1.0.3",
+      "files": [
+        "index.js"
+      ]
+    }
+  }
+}

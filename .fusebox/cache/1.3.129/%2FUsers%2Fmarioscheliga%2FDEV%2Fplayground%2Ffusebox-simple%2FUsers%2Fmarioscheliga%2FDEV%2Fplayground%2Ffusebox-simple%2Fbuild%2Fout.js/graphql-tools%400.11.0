@@ -1,0 +1,782 @@
+FuseBox.pkg("graphql-tools", {}, function(___scope___){
+___scope___.file("dist/index.js", function(exports, require, module, __filename, __dirname){
+
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./schemaGenerator"));
+__export(require("./mock"));
+__export(require("./autopublish"));
+//# sourceMappingURL=index.js.map
+});
+___scope___.file("dist/schemaGenerator.js", function(exports, require, module, __filename, __dirname){
+
+// Generates a schema for graphql-js given a shorthand schema
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+// TODO: document each function clearly in the code: what arguments it accepts
+// and what it outputs.
+// TODO: we should refactor this file, rename it to makeExecutableSchema, and move
+// a bunch of utility functions into a separate utitlities folder, one file per function.
+var graphql_1 = require("graphql");
+var lodash_1 = require("lodash");
+var graphql_2 = require("graphql");
+var graphql_3 = require("graphql");
+var deprecated_decorator_1 = require("deprecated-decorator");
+// @schemaDefinition: A GraphQL type schema in shorthand
+// @resolvers: Definitions for resolvers to be merged with schema
+var SchemaError = (function (_super) {
+    __extends(SchemaError, _super);
+    function SchemaError(message) {
+        var _this = _super.call(this, message) || this;
+        _this.message = message;
+        Error.captureStackTrace(_this, _this.constructor);
+        return _this;
+    }
+    return SchemaError;
+}(Error));
+exports.SchemaError = SchemaError;
+// type definitions can be a string or an array of strings.
+function _generateSchema(typeDefinitions, resolveFunctions, logger, 
+    // TODO: rename to allowUndefinedInResolve to be consistent
+    allowUndefinedInResolve, resolverValidationOptions) {
+    if (typeof resolverValidationOptions !== 'object') {
+        throw new SchemaError('Expected `resolverValidationOptions` to be an object');
+    }
+    if (!typeDefinitions) {
+        throw new SchemaError('Must provide typeDefs');
+    }
+    if (!resolveFunctions) {
+        throw new SchemaError('Must provide resolvers');
+    }
+    // TODO: check that typeDefinitions is either string or array of strings
+    var schema = buildSchemaFromTypeDefinitions(typeDefinitions);
+    addResolveFunctionsToSchema(schema, resolveFunctions);
+    assertResolveFunctionsPresent(schema, resolverValidationOptions);
+    if (!allowUndefinedInResolve) {
+        addCatchUndefinedToSchema(schema);
+    }
+    if (logger) {
+        addErrorLoggingToSchema(schema, logger);
+    }
+    return schema;
+}
+function makeExecutableSchema(_a) {
+    var typeDefs = _a.typeDefs, _b = _a.resolvers, resolvers = _b === void 0 ? {} : _b, connectors = _a.connectors, logger = _a.logger, _c = _a.allowUndefinedInResolve, allowUndefinedInResolve = _c === void 0 ? true : _c, _d = _a.resolverValidationOptions, resolverValidationOptions = _d === void 0 ? {} : _d;
+    var jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions);
+    if (typeof resolvers['__schema'] === 'function') {
+        // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
+        // not doing that now, because I'd have to rewrite a lot of tests.
+        addSchemaLevelResolveFunction(jsSchema, resolvers['__schema']);
+    }
+    if (connectors) {
+        // connectors are optional, at least for now. That means you can just import them in the resolve
+        // function if you want.
+        attachConnectorsToContext(jsSchema, connectors);
+    }
+    return jsSchema;
+}
+exports.makeExecutableSchema = makeExecutableSchema;
+function isDocumentNode(typeDefinitions) {
+    return typeDefinitions.kind !== undefined;
+}
+function concatenateTypeDefs(typeDefinitionsAry, calledFunctionRefs) {
+    if (calledFunctionRefs === void 0) { calledFunctionRefs = []; }
+    var resolvedTypeDefinitions = [];
+    typeDefinitionsAry.forEach(function (typeDef) {
+        if (isDocumentNode(typeDef)) {
+            typeDef = graphql_1.print(typeDef);
+        }
+        if (typeof typeDef === 'function') {
+            if (calledFunctionRefs.indexOf(typeDef) === -1) {
+                calledFunctionRefs.push(typeDef);
+                resolvedTypeDefinitions = resolvedTypeDefinitions.concat(concatenateTypeDefs(typeDef(), calledFunctionRefs));
+            }
+        }
+        else if (typeof typeDef === 'string') {
+            resolvedTypeDefinitions.push(typeDef.trim());
+        }
+        else {
+            var type = typeof typeDef;
+            throw new SchemaError("typeDef array must contain only strings and functions, got " + type);
+        }
+    });
+    return lodash_1.uniq(resolvedTypeDefinitions.map(function (x) { return x.trim(); })).join('\n');
+}
+exports.concatenateTypeDefs = concatenateTypeDefs;
+function buildSchemaFromTypeDefinitions(typeDefinitions) {
+    // TODO: accept only array here, otherwise interfaces get confusing.
+    var myDefinitions = typeDefinitions;
+    var astDocument;
+    if (isDocumentNode(typeDefinitions)) {
+        astDocument = typeDefinitions;
+    }
+    else if (typeof myDefinitions !== 'string') {
+        if (!Array.isArray(myDefinitions)) {
+            var type = typeof myDefinitions;
+            throw new SchemaError("typeDefs must be a string, array or schema AST, got " + type);
+        }
+        myDefinitions = concatenateTypeDefs(myDefinitions);
+    }
+    if (typeof myDefinitions === 'string') {
+        astDocument = graphql_1.parse(myDefinitions);
+    }
+    var schema = graphql_2.buildASTSchema(astDocument);
+    var extensionsAst = extractExtensionDefinitions(astDocument);
+    if (extensionsAst.definitions.length > 0) {
+        schema = graphql_2.extendSchema(schema, extensionsAst);
+    }
+    return schema;
+}
+exports.buildSchemaFromTypeDefinitions = buildSchemaFromTypeDefinitions;
+function extractExtensionDefinitions(ast) {
+    var extensionDefs = ast.definitions.filter(function (def) { return def.kind === graphql_1.Kind.TYPE_EXTENSION_DEFINITION; });
+    return Object.assign({}, ast, {
+        definitions: extensionDefs,
+    });
+}
+function forEachField(schema, fn) {
+    var typeMap = schema.getTypeMap();
+    Object.keys(typeMap).forEach(function (typeName) {
+        var type = typeMap[typeName];
+        // TODO: maybe have an option to include these?
+        if (!graphql_3.getNamedType(type).name.startsWith('__') && type instanceof graphql_3.GraphQLObjectType) {
+            var fields_1 = type.getFields();
+            Object.keys(fields_1).forEach(function (fieldName) {
+                var field = fields_1[fieldName];
+                fn(field, typeName, fieldName);
+            });
+        }
+    });
+}
+exports.forEachField = forEachField;
+// takes a GraphQL-JS schema and an object of connectors, then attaches
+// the connectors to the context by wrapping each query or mutation resolve
+// function with a function that attaches connectors if they don't exist.
+// attaches connectors only once to make sure they are singletons
+var attachConnectorsToContext = deprecated_decorator_1.deprecated({
+    version: '0.7.0',
+    url: 'https://github.com/apollostack/graphql-tools/issues/140',
+}, function attachConnectorsToContext(schema, connectors) {
+    if (!schema || !(schema instanceof graphql_3.GraphQLSchema)) {
+        throw new Error('schema must be an instance of GraphQLSchema. ' +
+            'This error could be caused by installing more than one version of GraphQL-JS');
+    }
+    if (typeof connectors !== 'object') {
+        var connectorType = typeof connectors;
+        throw new Error("Expected connectors to be of type object, got " + connectorType);
+    }
+    if (Object.keys(connectors).length === 0) {
+        throw new Error('Expected connectors to not be an empty object');
+    }
+    if (Array.isArray(connectors)) {
+        throw new Error('Expected connectors to be of type object, got Array');
+    }
+    if (schema['_apolloConnectorsAttached']) {
+        throw new Error('Connectors already attached to context, cannot attach more than once');
+    }
+    schema['_apolloConnectorsAttached'] = true;
+    var attachconnectorFn = function (root, args, ctx) {
+        if (typeof ctx !== 'object') {
+            // if in any way possible, we should throw an error when the attachconnectors
+            // function is called, not when a query is executed.
+            var contextType = typeof ctx;
+            throw new Error("Cannot attach connector because context is not an object: " + contextType);
+        }
+        if (typeof ctx.connectors === 'undefined') {
+            ctx.connectors = {};
+        }
+        Object.keys(connectors).forEach(function (connectorName) {
+            var connector = connectors[connectorName];
+            if (!!connector.prototype) {
+                ctx.connectors[connectorName] = new connector(ctx);
+            }
+            else {
+                throw new Error("Connector must be a function or an class");
+            }
+        });
+        return root;
+    };
+    addSchemaLevelResolveFunction(schema, attachconnectorFn);
+});
+exports.attachConnectorsToContext = attachConnectorsToContext;
+// wraps all resolve functions of query, mutation or subscription fields
+// with the provided function to simulate a root schema level resolve funciton
+function addSchemaLevelResolveFunction(schema, fn) {
+    // TODO test that schema is a schema, fn is a function
+    var rootTypes = ([
+        schema.getQueryType(),
+        schema.getMutationType(),
+        schema.getSubscriptionType(),
+    ]).filter(function (x) { return !!x; });
+    rootTypes.forEach(function (type) {
+        // XXX this should run at most once per request to simulate a true root resolver
+        // for graphql-js this is an approximation that works with queries but not mutations
+        var rootResolveFn = runAtMostOncePerRequest(fn);
+        var fields = type.getFields();
+        Object.keys(fields).forEach(function (fieldName) {
+            // XXX if the type is a subscription, a same query AST will be ran multiple times so we
+            // deactivate here the runOnce if it's a subscription. This may not be optimal though...
+            if (type === schema.getSubscriptionType()) {
+                fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
+            }
+            else {
+                fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
+            }
+        });
+    });
+}
+exports.addSchemaLevelResolveFunction = addSchemaLevelResolveFunction;
+function getFieldsForType(type) {
+    if ((type instanceof graphql_3.GraphQLObjectType) ||
+        (type instanceof graphql_3.GraphQLInterfaceType)) {
+        return type.getFields();
+    }
+    else {
+        return undefined;
+    }
+}
+function addResolveFunctionsToSchema(schema, resolveFunctions) {
+    Object.keys(resolveFunctions).forEach(function (typeName) {
+        var type = schema.getType(typeName);
+        if (!type && typeName !== '__schema') {
+            throw new SchemaError("\"" + typeName + "\" defined in resolvers, but not in schema");
+        }
+        Object.keys(resolveFunctions[typeName]).forEach(function (fieldName) {
+            if (fieldName.startsWith('__')) {
+                // this is for isTypeOf and resolveType and all the other stuff.
+                // TODO require resolveType for unions and interfaces.
+                type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
+                return;
+            }
+            if (type instanceof graphql_3.GraphQLScalarType) {
+                type[fieldName] = resolveFunctions[typeName][fieldName];
+                return;
+            }
+            var fields = getFieldsForType(type);
+            if (!fields) {
+                throw new SchemaError(typeName + " was defined in resolvers, but it's not an object");
+            }
+            if (!fields[fieldName]) {
+                throw new SchemaError(typeName + "." + fieldName + " defined in resolvers, but not in schema");
+            }
+            var field = fields[fieldName];
+            var fieldResolve = resolveFunctions[typeName][fieldName];
+            if (typeof fieldResolve === 'function') {
+                // for convenience. Allows shorter syntax in resolver definition file
+                setFieldProperties(field, { resolve: fieldResolve });
+            }
+            else {
+                if (typeof fieldResolve !== 'object') {
+                    throw new SchemaError("Resolver " + typeName + "." + fieldName + " must be object or function");
+                }
+                setFieldProperties(field, fieldResolve);
+            }
+        });
+    });
+}
+exports.addResolveFunctionsToSchema = addResolveFunctionsToSchema;
+function setFieldProperties(field, propertiesObj) {
+    Object.keys(propertiesObj).forEach(function (propertyName) {
+        field[propertyName] = propertiesObj[propertyName];
+    });
+}
+function assertResolveFunctionsPresent(schema, resolverValidationOptions) {
+    if (resolverValidationOptions === void 0) { resolverValidationOptions = {}; }
+    var _a = resolverValidationOptions.requireResolversForArgs, requireResolversForArgs = _a === void 0 ? false : _a, _b = resolverValidationOptions.requireResolversForNonScalar, requireResolversForNonScalar = _b === void 0 ? false : _b, _c = resolverValidationOptions.requireResolversForAllFields, requireResolversForAllFields = _c === void 0 ? false : _c;
+    if (requireResolversForAllFields && (requireResolversForArgs || requireResolversForNonScalar)) {
+        throw new TypeError('requireResolversForAllFields takes precedence over the more specific assertions. ' +
+            'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
+            'requireResolversForNonScalar, but not a combination of them.');
+    }
+    forEachField(schema, function (field, typeName, fieldName) {
+        // requires a resolve function for *every* field.
+        if (requireResolversForAllFields) {
+            expectResolveFunction(field, typeName, fieldName);
+        }
+        // requires a resolve function on every field that has arguments
+        if (requireResolversForArgs && field.args.length > 0) {
+            expectResolveFunction(field, typeName, fieldName);
+        }
+        // requires a resolve function on every field that returns a non-scalar type
+        if (requireResolversForNonScalar && !(graphql_3.getNamedType(field.type) instanceof graphql_3.GraphQLScalarType)) {
+            expectResolveFunction(field, typeName, fieldName);
+        }
+    });
+}
+exports.assertResolveFunctionsPresent = assertResolveFunctionsPresent;
+function expectResolveFunction(field, typeName, fieldName) {
+    if (!field.resolve) {
+        // tslint:disable-next-line: max-line-length
+        console.warn("Resolve function missing for \"" + typeName + "." + fieldName + "\". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131");
+        return;
+    }
+    if (typeof field.resolve !== 'function') {
+        throw new SchemaError("Resolver \"" + typeName + "." + fieldName + "\" must be a function");
+    }
+}
+function addErrorLoggingToSchema(schema, logger) {
+    if (!logger) {
+        throw new Error('Must provide a logger');
+    }
+    if (typeof logger.log !== 'function') {
+        throw new Error('Logger.log must be a function');
+    }
+    forEachField(schema, function (field, typeName, fieldName) {
+        var errorHint = typeName + "." + fieldName;
+        field.resolve = decorateWithLogger(field.resolve, logger, errorHint);
+    });
+}
+exports.addErrorLoggingToSchema = addErrorLoggingToSchema;
+// XXX badly named function. this doesn't really wrap, it just chains resolvers...
+function wrapResolver(innerResolver, outerResolver) {
+    return function (obj, args, ctx, info) {
+        return Promise.resolve(outerResolver(obj, args, ctx, info)).then(function (root) {
+            if (innerResolver) {
+                return innerResolver(root, args, ctx, info);
+            }
+            return defaultResolveFn(root, args, ctx, info);
+        });
+    };
+}
+function chainResolvers(resolvers) {
+    return function (root, args, ctx, info) {
+        return resolvers.reduce(function (prev, curResolver) {
+            if (curResolver) {
+                return curResolver(prev, args, ctx, info);
+            }
+            return defaultResolveFn(prev, args, ctx, info);
+        }, root);
+    };
+}
+exports.chainResolvers = chainResolvers;
+/*
+ * fn: The function to decorate with the logger
+ * logger: an object instance of type Logger
+ * hint: an optional hint to add to the error's message
+ */
+function decorateWithLogger(fn, logger, hint) {
+    if (typeof fn === 'undefined') {
+        fn = defaultResolveFn;
+    }
+    var logError = function (e) {
+        // TODO: clone the error properly
+        var newE = new Error();
+        newE.stack = e.stack;
+        /* istanbul ignore else: always get the hint from addErrorLoggingToSchema */
+        if (hint) {
+            newE['originalMessage'] = e.message;
+            newE['message'] = "Error in resolver " + hint + "\n" + e.message;
+        }
+        logger.log(newE);
+    };
+    return function (root, args, ctx, info) {
+        try {
+            var result = fn(root, args, ctx, info);
+            // If the resolve function returns a Promise log any Promise rejects.
+            if (result && typeof result.then === 'function' && typeof result.catch === 'function') {
+                result.catch(function (reason) {
+                    // make sure that it's an error we're logging.
+                    var error = reason instanceof Error ? reason : new Error(reason);
+                    logError(error);
+                    // We don't want to leave an unhandled exception so pass on error.
+                    return reason;
+                });
+            }
+            return result;
+        }
+        catch (e) {
+            logError(e);
+            // we want to pass on the error, just in case.
+            throw e;
+        }
+    };
+}
+function addCatchUndefinedToSchema(schema) {
+    forEachField(schema, function (field, typeName, fieldName) {
+        var errorHint = typeName + "." + fieldName;
+        field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
+    });
+}
+exports.addCatchUndefinedToSchema = addCatchUndefinedToSchema;
+function decorateToCatchUndefined(fn, hint) {
+    if (typeof fn === 'undefined') {
+        fn = defaultResolveFn;
+    }
+    return function (root, args, ctx, info) {
+        var result = fn(root, args, ctx, info);
+        if (typeof result === 'undefined') {
+            throw new Error("Resolve function for \"" + hint + "\" returned undefined");
+        }
+        return result;
+    };
+}
+// XXX this function only works for resolvers
+// XXX very hacky way to remember if the function
+// already ran for this request. This will only work
+// if people don't actually cache the operation.
+// if they do cache the operation, they will have to
+// manually remove the __runAtMostOnce before every request.
+function runAtMostOncePerRequest(fn) {
+    var value;
+    var randomNumber = Math.random();
+    return function (root, args, ctx, info) {
+        if (!info.operation['__runAtMostOnce']) {
+            info.operation['__runAtMostOnce'] = {};
+        }
+        if (!info.operation['__runAtMostOnce'][randomNumber]) {
+            info.operation['__runAtMostOnce'][randomNumber] = true;
+            value = fn(root, args, ctx, info);
+        }
+        return value;
+    };
+}
+/**
+ * XXX taken from graphql-js: src/execution/execute.js, because that function
+ * is not exported
+ *
+ * If a resolve function is not given, then a default resolve behavior is used
+ * which takes the property of the source object of the same name as the field
+ * and returns it as the result, or if it's a function, returns the result
+ * of calling that function.
+ */
+function defaultResolveFn(source, args, context, _a) {
+    var fieldName = _a.fieldName;
+    // ensure source is a value for which property access is acceptable.
+    if (typeof source === 'object' || typeof source === 'function') {
+        var property = source[fieldName];
+        if (typeof property === 'function') {
+            return property(args, context);
+        }
+        return property;
+    }
+}
+//# sourceMappingURL=schemaGenerator.js.map
+});
+___scope___.file("dist/mock.js", function(exports, require, module, __filename, __dirname){
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var graphql_1 = require("graphql");
+var graphql_2 = require("graphql");
+var uuid = require("uuid");
+var schemaGenerator_1 = require("./schemaGenerator");
+// This function wraps addMockFunctionsToSchema for more convenience
+function mockServer(schema, mocks, preserveResolvers) {
+    if (preserveResolvers === void 0) { preserveResolvers = false; }
+    var mySchema;
+    if (!(schema instanceof graphql_1.GraphQLSchema)) {
+        // TODO: provide useful error messages here if this fails
+        mySchema = schemaGenerator_1.buildSchemaFromTypeDefinitions(schema);
+    }
+    else {
+        mySchema = schema;
+    }
+    addMockFunctionsToSchema({ schema: mySchema, mocks: mocks, preserveResolvers: preserveResolvers });
+    return { query: function (query, vars) { return graphql_2.graphql(mySchema, query, {}, {}, vars); } };
+}
+exports.mockServer = mockServer;
+// TODO allow providing a seed such that lengths of list could be deterministic
+// this could be done by using casual to get a random list length if the casual
+// object is global.
+function addMockFunctionsToSchema(_a) {
+    var schema = _a.schema, _b = _a.mocks, mocks = _b === void 0 ? {} : _b, _c = _a.preserveResolvers, preserveResolvers = _c === void 0 ? false : _c;
+    function isObject(thing) {
+        return thing === Object(thing) && !Array.isArray(thing);
+    }
+    if (!schema) {
+        // XXX should we check that schema is an instance of GraphQLSchema?
+        throw new Error('Must provide schema to mock');
+    }
+    if (!isObject(mocks)) {
+        throw new Error('mocks must be of type Object');
+    }
+    // use Map internally, because that API is nicer.
+    var mockFunctionMap = new Map();
+    Object.keys(mocks).forEach(function (typeName) {
+        mockFunctionMap.set(typeName, mocks[typeName]);
+    });
+    mockFunctionMap.forEach(function (mockFunction, mockTypeName) {
+        if (typeof mockFunction !== 'function') {
+            throw new Error("mockFunctionMap[" + mockTypeName + "] must be a function");
+        }
+    });
+    var defaultMockMap = new Map();
+    defaultMockMap.set('Int', function () { return Math.round(Math.random() * 200) - 100; });
+    defaultMockMap.set('Float', function () { return (Math.random() * 200) - 100; });
+    defaultMockMap.set('String', function () { return 'Hello World'; });
+    defaultMockMap.set('Boolean', function () { return Math.random() > 0.5; });
+    defaultMockMap.set('ID', function () { return uuid.v4(); });
+    function mergeObjects(a, b) {
+        return Object.assign(a, b);
+    }
+    function copyOwnPropsIfNotPresent(target, source) {
+        Object.getOwnPropertyNames(source).forEach(function (prop) {
+            if (!Object.getOwnPropertyDescriptor(target, prop)) {
+                Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop));
+            }
+        });
+    }
+    function copyOwnProps(target) {
+        var sources = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            sources[_i - 1] = arguments[_i];
+        }
+        sources.forEach(function (source) {
+            var chain = source;
+            while (chain) {
+                copyOwnPropsIfNotPresent(target, chain);
+                chain = Object.getPrototypeOf(chain);
+            }
+        });
+        return target;
+    }
+    // returns a random element from that ary
+    function getRandomElement(ary) {
+        var sample = Math.floor(Math.random() * ary.length);
+        return ary[sample];
+    }
+    // takes either an object or a (possibly nested) array
+    // and completes the customMock object with any fields
+    // defined on genericMock
+    // only merges objects or arrays. Scalars are returned as is
+    function mergeMocks(genericMockFunction, customMock) {
+        if (Array.isArray(customMock)) {
+            return customMock.map(function (el) { return mergeMocks(genericMockFunction, el); });
+        }
+        if (isObject(customMock)) {
+            return mergeObjects(genericMockFunction(), customMock);
+        }
+        return customMock;
+    }
+    function getResolveType(namedFieldType) {
+        if ((namedFieldType instanceof graphql_1.GraphQLInterfaceType) ||
+            (namedFieldType instanceof graphql_1.GraphQLUnionType)) {
+            return namedFieldType.resolveType;
+        }
+        else {
+            return undefined;
+        }
+    }
+    function assignResolveType(type) {
+        var fieldType = graphql_1.getNullableType(type);
+        var namedFieldType = graphql_1.getNamedType(fieldType);
+        var oldResolveType = getResolveType(namedFieldType);
+        if (preserveResolvers && oldResolveType && oldResolveType.length) {
+            return;
+        }
+        if (namedFieldType instanceof graphql_1.GraphQLUnionType ||
+            namedFieldType instanceof graphql_1.GraphQLInterfaceType) {
+            // the default `resolveType` always returns null. We add a fallback
+            // resolution that works with how unions and interface are mocked
+            namedFieldType.resolveType = function (data, context, info) {
+                return info.schema.getType(data.typename);
+            };
+        }
+    }
+    var mockType = function mockType(type, typeName, fieldName) {
+        // order of precendence for mocking:
+        // 1. if the object passed in already has fieldName, just use that
+        // --> if it's a function, that becomes your resolver
+        // --> if it's a value, the mock resolver will return that
+        // 2. if the nullableType is a list, recurse
+        // 2. if there's a mock defined for this typeName, that will be used
+        // 3. if there's no mock defined, use the default mocks for this type
+        return function (root, args, context, info) {
+            // nullability doesn't matter for the purpose of mocking.
+            var fieldType = graphql_1.getNullableType(type);
+            var namedFieldType = graphql_1.getNamedType(fieldType);
+            if (root && typeof root[fieldName] !== 'undefined') {
+                var result = void 0;
+                // if we're here, the field is already defined
+                if (typeof root[fieldName] === 'function') {
+                    result = root[fieldName](root, args, context, info);
+                    if (result instanceof MockList) {
+                        result = result.mock(root, args, context, info, fieldType, mockType);
+                    }
+                }
+                else {
+                    result = root[fieldName];
+                }
+                // Now we merge the result with the default mock for this type.
+                // This allows overriding defaults while writing very little code.
+                if (mockFunctionMap.has(namedFieldType.name)) {
+                    result = mergeMocks(mockFunctionMap.get(namedFieldType.name).bind(null, root, args, context, info), result);
+                }
+                return result;
+            }
+            if (fieldType instanceof graphql_1.GraphQLList) {
+                return [mockType(fieldType.ofType)(root, args, context, info),
+                    mockType(fieldType.ofType)(root, args, context, info)];
+            }
+            if (mockFunctionMap.has(fieldType.name)) {
+                // the object passed doesn't have this field, so we apply the default mock
+                return mockFunctionMap.get(fieldType.name)(root, args, context, info);
+            }
+            if (fieldType instanceof graphql_1.GraphQLObjectType) {
+                // objects don't return actual data, we only need to mock scalars!
+                return {};
+            }
+            // TODO mocking Interface and Union types will require determining the
+            // resolve type before passing it on.
+            // XXX we recommend a generic way for resolve type here, which is defining
+            // typename on the object.
+            if (fieldType instanceof graphql_1.GraphQLUnionType) {
+                var randomType = getRandomElement(fieldType.getTypes());
+                return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
+            }
+            if (fieldType instanceof graphql_1.GraphQLInterfaceType) {
+                var possibleTypes = schema.getPossibleTypes(fieldType);
+                var randomType = getRandomElement(possibleTypes);
+                return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
+            }
+            if (fieldType instanceof graphql_1.GraphQLEnumType) {
+                return getRandomElement(fieldType.getValues()).value;
+            }
+            if (defaultMockMap.has(fieldType.name)) {
+                return defaultMockMap.get(fieldType.name)(root, args, context, info);
+            }
+            // if we get to here, we don't have a value, and we don't have a mock for this type,
+            // we could return undefined, but that would be hard to debug, so we throw instead.
+            // however, we returning it instead of throwing it, so preserveResolvers can handle the failures.
+            return Error("No mock defined for type \"" + fieldType.name + "\"");
+        };
+    };
+    schemaGenerator_1.forEachField(schema, function (field, typeName, fieldName) {
+        assignResolveType(field.type);
+        var mockResolver;
+        // we have to handle the root mutation and root query types differently,
+        // because no resolver is called at the root.
+        /* istanbul ignore next: Must provide schema DefinitionNode with query type or a type named Query. */
+        var isOnQueryType = schema.getQueryType() ? (schema.getQueryType().name === typeName) : false;
+        var isOnMutationType = schema.getMutationType() ? (schema.getMutationType().name === typeName) : false;
+        if (isOnQueryType || isOnMutationType) {
+            if (mockFunctionMap.has(typeName)) {
+                var rootMock_1 = mockFunctionMap.get(typeName);
+                // XXX: BUG in here, need to provide proper signature for rootMock.
+                if (rootMock_1(undefined, {}, {}, {})[fieldName]) {
+                    // TODO: assert that it's a function
+                    mockResolver = function (root, args, context, info) {
+                        var updatedRoot = root || {}; // TODO: should we clone instead?
+                        updatedRoot[fieldName] = rootMock_1(root, args, context, info)[fieldName];
+                        // XXX this is a bit of a hack to still use mockType, which
+                        // lets you mock lists etc. as well
+                        // otherwise we could just set field.resolve to rootMock()[fieldName]
+                        // it's like pretending there was a resolve function that ran before
+                        // the root resolve function.
+                        return mockType(field.type, typeName, fieldName)(updatedRoot, args, context, info);
+                    };
+                }
+            }
+        }
+        if (!mockResolver) {
+            mockResolver = mockType(field.type, typeName, fieldName);
+        }
+        if (!preserveResolvers || !field.resolve) {
+            field.resolve = mockResolver;
+        }
+        else {
+            var oldResolver_1 = field.resolve;
+            field.resolve = function (rootObject, args, context, info) { return Promise.all([
+                mockResolver(rootObject, args, context, info),
+                oldResolver_1(rootObject, args, context, info),
+            ]).then(function (values) {
+                var mockedValue = values[0], resolvedValue = values[1];
+                // In case we couldn't mock
+                if (mockedValue instanceof Error) {
+                    // only if value was not resolved, populate the error.
+                    if (undefined === resolvedValue) {
+                        throw mockedValue;
+                    }
+                    return resolvedValue;
+                }
+                if (isObject(mockedValue) && isObject(resolvedValue)) {
+                    // Object.assign() won't do here, as we need to all properties, including
+                    // the non-enumerable ones and defined using Object.defineProperty
+                    return copyOwnProps({}, resolvedValue, mockedValue);
+                }
+                return (undefined !== resolvedValue) ? resolvedValue : mockedValue;
+            }); };
+        }
+    });
+}
+exports.addMockFunctionsToSchema = addMockFunctionsToSchema;
+var MockList = (function () {
+    // wrappedFunction can return another MockList or a value
+    function MockList(len, wrappedFunction) {
+        this.len = len;
+        if (typeof wrappedFunction !== 'undefined') {
+            if (typeof wrappedFunction !== 'function') {
+                throw new Error('Second argument to MockList must be a function or undefined');
+            }
+            this.wrappedFunction = wrappedFunction;
+        }
+    }
+    MockList.prototype.mock = function (root, args, context, info, fieldType, mockTypeFunc) {
+        var arr;
+        if (Array.isArray(this.len)) {
+            arr = new Array(this.randint(this.len[0], this.len[1]));
+        }
+        else {
+            arr = new Array(this.len);
+        }
+        for (var i = 0; i < arr.length; i++) {
+            if (typeof this.wrappedFunction === 'function') {
+                var res = this.wrappedFunction(root, args, context, info);
+                if (res instanceof MockList) {
+                    var nullableType = graphql_1.getNullableType(fieldType.ofType);
+                    arr[i] = res.mock(root, args, context, info, nullableType, mockTypeFunc);
+                }
+                else {
+                    arr[i] = res;
+                }
+            }
+            else {
+                arr[i] = mockTypeFunc(fieldType.ofType)(root, args, context, info);
+            }
+        }
+        return arr;
+    };
+    MockList.prototype.randint = function (low, high) {
+        return Math.floor((Math.random() * ((high - low) + 1)) + low);
+    };
+    return MockList;
+}());
+exports.MockList = MockList;
+//# sourceMappingURL=mock.js.map
+});
+___scope___.file("dist/autopublish.js", function(exports, require, module, __filename, __dirname){
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var schemaGenerator_1 = require("./schemaGenerator");
+function autopublishMutationResults(schema, pubsub) {
+    // decorate the mutations with your thingy
+    var mutationFields = schema.getMutationType().getFields();
+    Object.keys(mutationFields).forEach(function (fieldName) {
+        var field = mutationFields[fieldName];
+        // define the function
+        var publishMutatedValue = function (source, args, ctx, info) {
+            pubsub.publish(fieldName, source);
+            return source;
+        };
+        field.resolve = schemaGenerator_1.chainResolvers([field.resolve, publishMutatedValue]);
+    });
+}
+exports.autopublishMutationResults = autopublishMutationResults;
+//# sourceMappingURL=autopublish.js.map
+});
+return ___scope___.entry = "dist/index.js";
+});
